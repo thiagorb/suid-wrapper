@@ -107,13 +107,15 @@ int main(int argc, char **argv)
 	struct arguments arguments;
 	arguments.force = false;
 	arguments.mode = link;
-	arguments.argc = 0;
-	arguments.argv = (char **)malloc(sizeof(char *) * argc);
 	arguments.inspect = NULL;
 	arguments.output = "a.out";
-	log_debug = log_silent;
-	log_info = log_stderr;
-	log_error = log_stderr;
+	arguments.argc = 0;
+	arguments.argv = (char **)malloc(sizeof(char *) * argc);
+	if (arguments.argv == NULL)
+	{
+		log_error("Failed to allocate arguments argv!\n");
+		return 1;
+	}
 
   	argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
@@ -129,6 +131,11 @@ int main(int argc, char **argv)
 
 		wrapper *wrapper = wrapper_build_from_runner(runner);
 		fclose(runner);
+		if (wrapper == NULL)
+		{
+			return 1;
+		}
+
 		log_info("Arguments count: %i\n", wrapper->argc);
 		for (size_t i = 0; i < wrapper->argc; i++)
 		{
@@ -178,6 +185,10 @@ int generate_binary(struct arguments arguments)
 	}
 
 	wrapper *wrapper = wrapper_build_from_args(arguments.argc, arguments.argv);
+	if (wrapper == NULL)
+	{
+		return 1;
+	}
 	log_debug("Arguments count: %i\n", wrapper->argc);
 
 	fwrite(&wrapper->argc, sizeof(wrapper->argc), 1, output);

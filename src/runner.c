@@ -12,6 +12,10 @@ int main(int argc, char **argv)
 	FILE *self_exe = open_exe("/proc/self/exe");
 	wrapper *wrapper = wrapper_build_from_runner(self_exe);
 	fclose(self_exe);
+	if (wrapper == NULL)
+	{
+		return 1;
+	}
 
 	char *new_argv[wrapper->argc + argc];
 	for (int i = 0; i < wrapper->argc; i++)
