@@ -14,19 +14,19 @@ extern log_function log_info;
 extern log_function log_error;
 
 #define read_or_return(target, file, value, ...) \
-    if (fread(target, sizeof(*target), 1, file) != 1) \
-    {\
-        log_error(__VA_ARGS__); \
-        return value; \
-    }
+	if (fread(target, sizeof(*target), 1, file) != 1) \
+	{ \
+		log_error(__VA_ARGS__); \
+		return value; \
+	}
 
 typedef int argc_t;
 typedef int argv_len_t;
 
 typedef struct
 {
-    argc_t argc;
-    char **argv;
+	argc_t argc;
+	char **argv;
 } wrapper;
 
 wrapper *wrapper_build_from_args(argc_t argc, char **argv);

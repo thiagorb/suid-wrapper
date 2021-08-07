@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 		FILE *runner = open_exe(arguments.inspect);
 		if (!runner)
 		{
-    		log_error("Unable to open file at %s.\n", arguments.inspect);
+			log_error("Unable to open file at %s.\n", arguments.inspect);
 			return 1;
 		}
 
