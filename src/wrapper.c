@@ -54,30 +54,7 @@ wrapper *wrapper_new(int argc)
 		return NULL;
 	}
 	memset(result->argv, 0, argv_size);
-
-	return result;
-}
-
-wrapper *wrapper_build_from_args(int argc, char **argv)
-{
-	wrapper *result = wrapper_new(argc);
-	if (result == NULL)
-	{
-		return NULL;
-	}
-
-	for (int i = 0; i < result->argc; i++)
-	{
-		argv_len_t len = strlen(argv[i]);
-		result->argv[i] = (char *)malloc(sizeof(char) * (len + 1));
-		if (result->argv[i] == NULL)
-		{
-			log_error("Failed to allocate wrapper argv[%i] with length %i!\n", i, len);
-			wrapper_destroy(result);
-			return NULL;
-		}
-		strcpy(result->argv[i], argv[i]);
-	}
+	result->allow_extra_args = false;
 
 	return result;
 }
@@ -127,6 +104,7 @@ wrapper *wrapper_build_from_runner(FILE *runner_exe)
 		log_error("Executable was not created with " APP_NAME ", or was created with an incompatible version\n");
 		return NULL;
 	}
+	log_debug("Marker check passed\n");
 
 	version version;
 	read_or_return(&version, runner_exe, NULL, "Failed to read runner version\n");
@@ -138,6 +116,7 @@ wrapper *wrapper_build_from_runner(FILE *runner_exe)
 		log_error("Runner was created with an incompatible version of " APP_NAME "\n");
 		return NULL;
 	}
+	log_debug("Version check passed\n");
 
 	argc_t argc;
 	read_or_return(&argc, runner_exe, NULL, "Failed to read argument count\n");
@@ -166,6 +145,8 @@ wrapper *wrapper_build_from_runner(FILE *runner_exe)
 		memcpy(result->argv[i], arg, len);
 		result->argv[i][len] = 0;
 	}
+
+	read_or_return(&result->allow_extra_args, runner_exe, NULL, "Failed to read allow_extra_args\n");
 
 	return result;
 }

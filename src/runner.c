@@ -21,11 +21,18 @@ int main(int argc, char **argv)
 		new_argv[i] = wrapper->argv[i];
 	}
 
-	for (int i = 0; i < argc - 1; i++)
+	if (wrapper->allow_extra_args)
 	{
-		new_argv[wrapper->argc + i] = argv[i + 1];
+		for (int i = 0; i < argc - 1; i++)
+		{
+			new_argv[wrapper->argc + i] = argv[i + 1];
+		}
+		new_argv[wrapper->argc + argc - 1] = NULL;
 	}
-	new_argv[wrapper->argc + argc - 1] = NULL;
+	else
+	{
+		new_argv[wrapper->argc] = NULL;
+	}
 
 	if (setuid(geteuid()) != 0)
 	{

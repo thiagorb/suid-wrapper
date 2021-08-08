@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #ifndef APP_NAME
 	#define APP_NAME "suid-wrapper"
@@ -35,6 +36,7 @@ typedef struct wrapper
 {
 	argc_t argc;
 	char **argv;
+	bool allow_extra_args;
 } wrapper;
 
 typedef struct version
@@ -46,7 +48,7 @@ typedef struct version
 
 version get_version();
 
-wrapper *wrapper_build_from_args(argc_t argc, char **argv);
+wrapper *wrapper_new(int argc);
 wrapper *wrapper_build_from_runner(FILE *runner_exe);
 void wrapper_destroy(wrapper *wrapper);
 

@@ -20,6 +20,7 @@ static struct argp_option options[] = {
 	{"output", 'o', "FILE", 0, "Path to output binary"},
 	{"force", 'f', 0, 0, "Overwrite output file if it already exists"},
 	{"quiet", 'q', 0, 0, "Suppress all output"},
+	{"allow-extra-args", 'e', 0, 0, "Allow extra arguments to be passed to the generated binary"},
 	{0}
 };
 
@@ -37,6 +38,7 @@ struct arguments
 	int argc;
 	char **argv;
 	bool force;
+	bool allow_extra_args;
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state)
@@ -60,6 +62,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 
 	case 'f':
 		arguments->force = true;
+		break;
+
+	case 'e':
+		arguments->allow_extra_args = true;
 		break;
 
 	case 'q':
@@ -89,7 +95,8 @@ static struct argp argp = {options, parse_opt, args_doc, doc};
 
 const uint64_t BUFFER_SIZE = 1024 * 1024;
 
-int generate_binary(struct arguments arguments);
+static int generate_binary(struct arguments arguments);
+static wrapper *wrapper_build_from_args(struct arguments arguments);
 
 extern char _binary_runner_start[];
 extern char _binary_runner_end[];
@@ -98,6 +105,7 @@ int main(int argc, char **argv)
 {
 	struct arguments arguments;
 	arguments.force = false;
+	arguments.allow_extra_args = false;
 	arguments.mode = link;
 	arguments.inspect = NULL;
 	arguments.output = "a.out";
@@ -133,15 +141,16 @@ int main(int argc, char **argv)
 		{
 			log_info("Argument %li: %s\n", i, wrapper->argv[i]);
 		}
+		log_info("Allow extra arguments: %s\n", wrapper->allow_extra_args ? "yes" : "no");
 		wrapper_destroy(wrapper);
 
-		return 1;
+		return 0;
 	}
 
 	return generate_binary(arguments);
 }
 
-int generate_binary(struct arguments arguments)
+static int generate_binary(struct arguments arguments)
 {
 	FILE *output = NULL;
 	if (arguments.force)
@@ -176,7 +185,7 @@ int generate_binary(struct arguments arguments)
 		return 1;
 	}
 
-	wrapper *wrapper = wrapper_build_from_args(arguments.argc, arguments.argv);
+	wrapper *wrapper = wrapper_build_from_args(arguments);
 	if (wrapper == NULL)
 	{
 		return 1;
@@ -197,6 +206,7 @@ int generate_binary(struct arguments arguments)
 		fwrite(&len, sizeof(len), 1, output);
 		fwrite(wrapper->argv[i], 1, len, output);
 	}
+	fwrite(&wrapper->allow_extra_args, sizeof(wrapper->allow_extra_args), 1, output);
 	wrapper_destroy(wrapper);
 
 	fwrite(&runner_size, sizeof(runner_size), 1, output);
@@ -205,4 +215,33 @@ int generate_binary(struct arguments arguments)
 	chmod(arguments.output, 06711);
 
 	return 0;
+}
+
+static wrapper *wrapper_build_from_args(struct arguments arguments)
+{
+	wrapper *result = wrapper_new(arguments.argc);
+	if (result == NULL)
+	{
+		return NULL;
+	}
+
+	for (int i = 0; i < result->argc; i++)
+	{
+		argv_len_t len = strlen(arguments.argv[i]);
+		result->argv[i] = (char *)malloc(sizeof(char) * (len + 1));
+		if (result->argv[i] == NULL)
+		{
+			log_error("Failed to allocate wrapper argv[%i] with length %i!\n", i, len);
+			wrapper_destroy(result);
+			return NULL;
+		}
+		strcpy(result->argv[i], arguments.argv[i]);
+	}
+
+	if (arguments.allow_extra_args)
+	{
+		result->allow_extra_args = true;
+	}
+
+	return result;
 }
