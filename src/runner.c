@@ -27,8 +27,6 @@ int main(int argc, char **argv)
 	}
 	new_argv[wrapper->argc + argc - 1] = NULL;
 
-
-	char *new_env[] = { NULL };
 	if (setuid(geteuid()) != 0)
 	{
 		log_error("Failed to set uid\n");
@@ -38,6 +36,8 @@ int main(int argc, char **argv)
 	{
 		log_error("Failed to set gid\n");
 	}
+
+	char *new_env[] = { NULL };
 	execve(new_argv[0], &new_argv[0], new_env);
 	wrapper_destroy(wrapper);
 
