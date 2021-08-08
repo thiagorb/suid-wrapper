@@ -5,8 +5,6 @@
 #include <stdint.h>
 #include "wrapper.h"
 
-int execute_command(FILE *self_exe, int argc, char **argv, uint64_t arguments_offset);
-
 int main(int argc, char **argv)
 {
 	FILE *self_exe = open_exe("/proc/self/exe");
