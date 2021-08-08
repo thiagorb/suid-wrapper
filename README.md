@@ -9,7 +9,7 @@ if they are the owner of the file.
 - Option 1: Pre-Compiled binary (< 100 KiB)
 
     ```bash
-    $ wget https://raw.githubusercontent.com/thiagorb/suid-wrapper/releases/suid-wrapper -O suid-wrapper
+    $ wget https://github.com/thiagorb/suid-wrapper/releases/latest/download/suid-wrapper -O suid-wrapper
     $ chmod +x suid-wrapper
     $ sudo mv suid-wrapper /usr/bin/suid-wrapper
     ```
