@@ -4,6 +4,14 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#ifndef APP_NAME
+	#define APP_NAME "suid-wrapper"
+#endif
+
+#ifndef APP_VERSION
+	#define APP_VERSION "0.1"
+#endif
+
 typedef void (*log_function)(char*, ...);
 
 void log_silent(char *format, ...);
@@ -23,11 +31,20 @@ extern log_function log_error;
 typedef int argc_t;
 typedef int argv_len_t;
 
-typedef struct
+typedef struct wrapper
 {
 	argc_t argc;
 	char **argv;
 } wrapper;
+
+typedef struct version
+{
+	uint8_t major;
+	uint8_t minor;
+	uint8_t patch;
+} version;
+
+version get_version();
 
 wrapper *wrapper_build_from_args(argc_t argc, char **argv);
 wrapper *wrapper_build_from_runner(FILE *runner_exe);

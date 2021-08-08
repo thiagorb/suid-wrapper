@@ -9,14 +9,6 @@
 #include <fcntl.h>
 #include "wrapper.h"
 
-#ifndef APP_NAME
-	#define APP_NAME "suid-wrapper"
-#endif
-
-#ifndef APP_VERSION
-	#define APP_VERSION "0.1"
-#endif
-
 const char *argp_program_version = APP_NAME " " APP_VERSION;
 const char *argp_program_bug_address = "<https://github.com/thiagorb/" APP_NAME ">";
 static char doc[] = APP_NAME " is a program that creates an executable binary that executes another given binary with pre-configured arguments.";
@@ -189,8 +181,13 @@ int generate_binary(struct arguments arguments)
 	{
 		return 1;
 	}
-	log_debug("Arguments count: %i\n", wrapper->argc);
 
+	char marker[] = APP_NAME;
+	fwrite(marker, sizeof(marker), 1, output);
+	version version = get_version();
+	fwrite(&version, sizeof(version), 1, output);
+
+	log_debug("Arguments count: %i\n", wrapper->argc);
 	fwrite(&wrapper->argc, sizeof(wrapper->argc), 1, output);
 	for (int i = 0; i < wrapper->argc; i++)
 	{
