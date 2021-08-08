@@ -6,7 +6,7 @@ if they are the owner of the file.
 
 ## Installation
 
-- Option 1: Pre-Compiled binary (36 KiB)
+- Option 1: Pre-Compiled binary (< 100 KiB)
 
     ```bash
     $ wget https://raw.githubusercontent.com/thiagorb/suid-wrapper/releases/suid-wrapper -O suid-wrapper
