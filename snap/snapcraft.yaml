@@ -1,6 +1,6 @@
 name: suid-wrapper
 base: core20
-version: '0.1'
+version: '0.1.3'
 summary: Utility to create binary executables to be used with the suid flag
 description: |
   This utility lets you create an executable binary, with the suid flag set.
@@ -15,10 +15,12 @@ description: |
   uid set to that of 'docker', with the same permissions 'docker' has.
 
 grade: stable
-confinement: classic
+confinement: strict
 apps:
   suid-wrapper:
     command: bin/suid-wrapper
+    plugs:
+      - home
 parts:
   suid-wrapper:
     plugin: nil
@@ -27,6 +29,6 @@ parts:
     build-packages:
       - make
     override-build: |
-      APP_VERSION=0.1 make release
+      APP_VERSION=0.1.3 make release
       mkdir -p $SNAPCRAFT_PART_INSTALL/bin
       cp bin/release/suid-wrapper $SNAPCRAFT_PART_INSTALL/bin/suid-wrapper
