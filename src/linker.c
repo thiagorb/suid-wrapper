@@ -190,6 +190,12 @@ static int generate_binary(struct arguments arguments)
 	{
 		return 1;
 	}
+	char resolved_path[PATH_MAX];
+    if (realpath(wrapper->argv[0], resolved_path) == NULL)
+    {
+        log_error("Unable to locate executable at \"%s\".\nPlease provide the absolute path to the binary.\n", wrapper->argv[0]);
+        return 1;
+    }
 
 	char marker[] = APP_NAME;
 	fwrite(marker, sizeof(marker), 1, output);
@@ -219,13 +225,27 @@ static int generate_binary(struct arguments arguments)
 
 static wrapper *wrapper_build_from_args(struct arguments arguments)
 {
+    if (arguments.argc < 1)
+    {
+        log_error("Invalid arguments for wrapper_build_from_args");
+        return NULL;
+    }
+
 	wrapper *result = wrapper_new(arguments.argc);
 	if (result == NULL)
 	{
 		return NULL;
 	}
 
-	for (int i = 0; i < result->argc; i++)
+    result->argv[0] = realpath(arguments.argv[0], NULL);
+    if (result->argv[0] == NULL)
+    {
+        log_error("Failed to resolve path to \"%s\".\n", arguments.argv[0]);
+        wrapper_destroy(result);
+        return NULL;
+    }
+
+	for (int i = 1; i < result->argc; i++)
 	{
 		argv_len_t len = strlen(arguments.argv[i]);
 		result->argv[i] = (char *)malloc(sizeof(char) * (len + 1));

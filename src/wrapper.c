@@ -1,38 +1,23 @@
 #define _XOPEN_SOURCE 500
 
-#include <unistd.h>
 #include <inttypes.h>
 #include <linux/limits.h>
 #include <string.h>
-#include <malloc.h>
-#include <stdbool.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include "wrapper.h"
 
 const uint64_t MAX_MEMORY = 5 * 1024 * 1024;
 
 FILE *open_exe(const char *path)
 {
-	char path1[PATH_MAX];
-	char path2[PATH_MAX];
-	char *current_path = path1;
-	char *next_path = path2;
-	strncpy(current_path, path, PATH_MAX - 1);
-	current_path[PATH_MAX - 1] = 0;
+	char resolved_path[PATH_MAX];
+    if (realpath(path, resolved_path) == NULL)
+    {
+        return NULL;
+    }
 
-	ssize_t path_len = readlink(current_path, next_path, PATH_MAX);
-	while (path_len > 0)
-	{
-		log_debug("Following symlink %s...\n", current_path);
-		next_path[path_len] = 0;
-		char *temp = current_path;
-		current_path = next_path;
-		next_path = temp;
-		path_len = readlink(current_path, next_path, PATH_MAX) != -1;
-	}
-	log_debug("Executable found in %s.\n", current_path);
-
-	return fopen(current_path, "r");
+	return fopen(resolved_path, "r");
 }
 
 wrapper *wrapper_new(int argc)

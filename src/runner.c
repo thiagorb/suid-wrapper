@@ -1,6 +1,8 @@
 #define _XOPEN_SOURCE 500
 
 #include <unistd.h>
+#include <errno.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdint.h>
 #include "wrapper.h"
@@ -45,7 +47,12 @@ int main(int argc, char **argv)
 	}
 
 	char *new_env[] = { NULL };
-	execve(new_argv[0], &new_argv[0], new_env);
+	int result = execve(new_argv[0], &new_argv[0], new_env);
+    if (result != 0)
+    {
+        fprintf(stderr, "Failed to execute program %s:\n\t%s", new_argv[0], strerror(errno));
+        return 1;
+    }
 	wrapper_destroy(wrapper);
 
 	return 0;
