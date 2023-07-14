@@ -5,7 +5,19 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <pwd.h>
 #include "wrapper.h"
+
+/**
+ * Format a string and return a pointer to the alloc'd result.
+ */
+#define ssprintf(...) ({                                          \
+	int required_bytes = snprintf(NULL, 0, __VA_ARGS__) + 1;      \
+	char *result = (char *)malloc(sizeof(char) * required_bytes); \
+	snprintf(result, required_bytes, __VA_ARGS__);                \
+	result;                                                       \
+})
 
 int main(int argc, char **argv)
 {
@@ -36,6 +48,17 @@ int main(int argc, char **argv)
 		new_argv[wrapper->argc] = NULL;
 	}
 
+	uid_t uid = getuid();
+	gid_t gid = getgid();
+	char *user = getpwuid(uid)->pw_name;
+
+	char *new_env[] = {
+		ssprintf("SUID_WRAPPER_UID=%d", uid),
+		ssprintf("SUID_WRAPPER_GID=%d", gid),
+		ssprintf("SUID_WRAPPER_USER=%s", user),
+		NULL,
+	};
+
 	if (setuid(geteuid()) != 0)
 	{
 		log_error("Failed to set uid\n");
@@ -46,13 +69,12 @@ int main(int argc, char **argv)
 		log_error("Failed to set gid\n");
 	}
 
-	char *new_env[] = { NULL };
 	int result = execve(new_argv[0], &new_argv[0], new_env);
-    if (result != 0)
-    {
-        fprintf(stderr, "Failed to execute program %s:\n\t%s", new_argv[0], strerror(errno));
-        return 1;
-    }
+	if (result != 0)
+	{
+		fprintf(stderr, "Failed to execute program %s:\n\t%s", new_argv[0], strerror(errno));
+		return 1;
+	}
 	wrapper_destroy(wrapper);
 
 	return 0;
