@@ -1,5 +1,5 @@
 name: suid-wrapper
-base: core20
+base: core22
 version: '0.2.0'
 summary: Utility to create binary executables to be used with the suid flag
 description: |
@@ -28,7 +28,9 @@ parts:
     source-type: git
     build-packages:
       - make
+      - execstack
     override-build: |
       APP_VERSION=0.2.0 make release
+      execstack --clear-execstack bin/release/suid-wrapper
       mkdir -p $SNAPCRAFT_PART_INSTALL/bin
       cp bin/release/suid-wrapper $SNAPCRAFT_PART_INSTALL/bin/suid-wrapper
